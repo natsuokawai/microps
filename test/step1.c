@@ -21,7 +21,7 @@ on_signal(int s)
 int
 main(int argc, char *argv[])
 {
-	struct ret_device *dev;
+	struct net_device *dev;
 
 	/* signal handler setting */
 	signal(SIGINT, on_signal);

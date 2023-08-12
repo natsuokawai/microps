@@ -6,6 +6,7 @@
 
 #ifndef IFNAMSIZ
 #define IFNAMSIZ 16
+#endif
 
 #define NET_DEVICE_TYPE_DUMMY 0x0000
 #define NET_DEVICE_TYPE_LOOPBACK 0x0001
