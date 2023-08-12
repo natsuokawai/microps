@@ -38,3 +38,39 @@ net_device_register(struct net_device *dev)
 
 	return 0;
 }
+
+/* specify "static" to allow access to functions only within this file */
+static int
+net_device_open(struct net_device *dev)
+{
+	if (NET_DEVICE_FLAG_UP(dev)) {
+		errorf("already opened, dev=%s", dev->name);
+		return -1;
+	}
+	if (dev->ops->open) {
+		if (dev->ops->open(dev) == -1) {
+			errorf("open failure, dev=%s", dev->name);
+		}
+	}
+	dev->flags |= NET_DEVICE_FLAG_UP;
+	infof("dev=%s, state=%s", dev->name, NET_DEVICE_STATE(dev));
+	return 0;
+}
+
+static int
+net_device_close(struct net_device *dev)
+{
+	if (!NET_DEVICE_FLAG_UP(dev)) {
+		errorf("not opened, dev=%s", dev->name);
+		return -1;
+	}
+	if (dev->ops->close) {
+		if (dev->ops->close(dev) == -1) {
+			error("close failure, dev=%s", dev->name);
+			return -1;
+		}
+	}
+	def->flags &= -NET_DEVICE_FLAG_UP;
+	infof("dev=%s, state=%s", dev->name, NET_DEVICE_STATE(dev));
+	return 0;
+}
