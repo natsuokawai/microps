@@ -96,3 +96,50 @@ intr_thread(void *arg)
 	debugf("terminated");
 	return NULL;
 }
+
+int
+intr_run(void)
+{
+	int err;
+
+	/* block signals in sigmask */
+	err = pthread_sigmask(SIG_BLOCK, &sigmask, NULL);
+	if (err) {
+		errorf("pthread_sigmask() %s", strerror(err));
+		return -1;
+	}
+
+	/* create interrupt thread */
+	err = pthread_create(&tid, NULL, intr_thread, NULL);
+	if (err) {
+		errorf("pthread_create() %s", strerror(err));
+		return -1;
+	}
+	pthread_barrier_wait(&barrier);
+	return 0;
+}
+
+void
+intr_shutdown(void)
+{
+	if (pthread_equal(tid, pthread_self()) != 0) {
+		infof("interrupt thread not present");
+		return;
+	}
+	pthread_kill(tid, SIGHUP);
+
+	/* wait for interrupt thread down completely */
+	pthread_join(tid, NULL);
+}
+
+int
+intr_init(void)
+{
+	/* record main thread id */
+	tid = pthread_self();
+
+	pthread_barrier_init(&barrier, NULL, 2);
+	sigemptyset(&sigmask);
+	sigaddset(&sigmask, SIGHUP);
+	return 0;
+}
