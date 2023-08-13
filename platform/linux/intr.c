@@ -47,14 +47,14 @@ intr_request_irq(unsigned int irq, int (*handler)(unsigned int irq, void *dev), 
 	entry->irq = irq;
 	entry->handler = handler;
 	entry->flags = flags;
-	strncopy(entry->name, name, sizeof(entry->name)-1);
+	strncpy(entry->name, name, sizeof(entry->name)-1);
 	entry->dev = dev;
 
 	/* append irq to head of the irq list */
 	entry->next = irqs;
 	irqs = entry;
 
-	sigaddtest(&sigmask, irq);
+	sigaddset(&sigmask, irq);
 	debugf("registered: irq=%u, name=%s", irq, name);
 
 	return 0;
@@ -70,7 +70,7 @@ intr_raise_irq(unsigned int irq)
 static void *
 intr_thread(void *arg)
 {
-	int terminate = 0, sig, error;
+	int terminate = 0, sig, err;
 	struct irq_entry *entry;
 
 	debugf("start...");
