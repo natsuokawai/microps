@@ -140,8 +140,37 @@ net_protocol_register(uint16_t type, void (*handler)(const uint8_t *data, size_t
 int
 net_input_handler(uint16_t type, const uint8_t *data, size_t len, struct net_device *dev)
 {
-	debugf("dev=%s, type=0x%04x, len=%zu", dev->name, type, len);
-	debugdump(data, len);
+	struct net_protocol *proto;
+	struct net_protocol_queue_entry *entry;
+
+	for (proto = protocols; proto; proto = proto->next) {
+		if (proto->type == type) {
+			/* memory allocation for entry */
+			entry = memory_alloc(sizeof(*entry) + len);
+			if (!entry) {
+				errorf("memory_alloc() failure");
+				return NULL;
+			}
+
+			/* set values to entry */
+			entry->dev = dev;
+			entry->len = len;
+			memcpy(entry->data, data, len);
+
+			/* append entry to queue */
+			if (!queue_push(entries->queue)) {
+				errorf("queue_push() failure");
+				return NULL;
+			}
+
+			debugf("queue pushed (num:%u), dev=%s, type=0x%04x, len=%zu",
+					proto->queue.num, dev->name, type, len);
+			debugdump(data, len);
+			return 0;
+		}
+	}
+
+	/* unsupported protocl */
 	return 0;
 }
 
