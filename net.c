@@ -7,6 +7,7 @@
 
 #include "util.h"
 #include "net.h"
+#include "ip.h"
 
 struct net_protocol {
 	struct net_protocol *next;
@@ -149,7 +150,7 @@ net_input_handler(uint16_t type, const uint8_t *data, size_t len, struct net_dev
 			entry = memory_alloc(sizeof(*entry) + len);
 			if (!entry) {
 				errorf("memory_alloc() failure");
-				return NULL;
+				return -1;
 			}
 
 			/* set values to entry */
@@ -158,9 +159,9 @@ net_input_handler(uint16_t type, const uint8_t *data, size_t len, struct net_dev
 			memcpy(entry->data, data, len);
 
 			/* append entry to queue */
-			if (!queue_push(entries->queue)) {
+			if (!queue_push(&proto->queue, (void *)data)) {
 				errorf("queue_push() failure");
-				return NULL;
+				return -1;
 			}
 
 			debugf("queue pushed (num:%u), dev=%s, type=0x%04x, len=%zu",
@@ -210,6 +211,10 @@ net_init(void)
 {
 	if (intr_init() == -1) {
 		errorf("intr_init() failure");
+		return -1;
+	}
+	if (ip_init() == -1) {
+		errorf("ip_init() failure");
 		return -1;
 	}
 	infof("initialized");
