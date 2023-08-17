@@ -23,7 +23,7 @@ struct loopback {
 struct loopback_queue_entry {
 	uint16_t type;
 	size_t len;
-	uint8_t data[]; /* flexsible array member */
+	uint8_t data[]; /* flexible array member */
 };
 
 static int
@@ -47,6 +47,7 @@ loopback_transmit(struct net_device *dev, uint16_t type, const uint8_t *data, si
 	entry->type = type;
 	entry->len = len;
 	memcpy(entry->data, data, len);
+	queue_push(&PRIV(dev)->queue, entry);
 	num = PRIV(dev)->queue.num;
 	mutex_unlock(&PRIV(dev)->mutex);
 	debugf("queue pushed (num:%u), dev=%s, type=0x%04x, len=%zd", num, dev->name, type, len);
@@ -68,7 +69,7 @@ loopback_isr(unsigned int irq, void *id)
 		if (!entry) {
 			break;
 		}
-		debugf("queue poped (num:%u), type=0x%04x, len=%zd", PRIV(dev)->queue.num, dev->name, entry->type, entry->len);
+		debugf("queue popped (num:%u), dev=%s, type=0x%04x, len=%zu", PRIV(dev)->queue.num, dev->name, entry->type, entry->len);
 		debugdump(entry->data, entry->len);
 		net_input_handler(entry->type, entry->data, entry->len, dev);
 		memory_free(entry);
@@ -108,7 +109,7 @@ loopback_init(void)
 	queue_init(&lo->queue);
 	dev->priv = lo;
 
-	dev->ops = &loopback_ops; 
+	dev->ops = &loopback_ops;
 	if (net_device_register(dev) == -1) {
 		errorf("net_device_register() failure");
 		return NULL;

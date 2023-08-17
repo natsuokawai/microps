@@ -7,7 +7,7 @@
 #include "util.h"
 #include "net.h"
 
-#define DUMMY_MTU UINT16_MAX /* muximum size of IP datgagram */
+#define DUMMY_MTU UINT16_MAX /* maximum size of IP datagram */
 
 #define DUMMY_IRQ INTR_IRQ_BASE
 
