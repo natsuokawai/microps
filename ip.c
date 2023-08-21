@@ -3,6 +3,8 @@
 #include <stddef.h>
 #include <stdlib.h>
 
+#include "platform.h"
+
 #include "util.h"
 #include "net.h"
 #include "ip.h"
@@ -23,6 +25,8 @@ struct ip_hdr {
 
 const ip_addr_t IP_ADDR_ANY = 0x00000000; /* 0.0.0.0 */
 const ip_addr_t IP_ADDR_BROADCAST = 0xffffffff; /* 255.255.255.255 */
+
+static struct ip_face *ifaces;
 
 /* Printable text TO Network binary */
 int
@@ -90,6 +94,43 @@ ip_dump(const uint8_t *data, size_t len)
 	hexdump(stderr, data, len);
 #endif
 	funlockfile(stderr);
+}
+
+extern struct ip_iface *
+ip_iface_alloc(const char *unicast, const char *netmask)
+{
+	struct ip_face *iface;
+
+	iface = memory_alloc(sizeof(*iface));
+	if (!iface) {
+		errorf("memory_alloc() failure");
+		return NULL;
+	}
+	NET_IFACE(iface)->family = NET_IFACE_FAMILY_IP;
+
+	if (ip_addr_pton(unicast, &iface->unicast) == -1) {
+		errorf("set unicast failure");
+		memory_free(iface);
+		return NULL;
+	}
+	if (ip_addr_pton(netmask, &iface->netmask)) {
+		errorf("set netmask failure");
+		memory_free(iface);
+		return NULL;
+	}
+	iface->broadcast = (iface->unicast & iface->netmask) | ~iface->netmask;
+
+	return iface;
+}
+
+extern int
+ip_iface_register(struct net_device *dev, struct ip_face *iface)
+{
+}
+
+extern struct ip_iface *
+ip_iface_select(ip_addr_t addr)
+{
 }
 
 static void
