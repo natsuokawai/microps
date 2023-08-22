@@ -126,11 +126,36 @@ ip_iface_alloc(const char *unicast, const char *netmask)
 extern int
 ip_iface_register(struct net_device *dev, struct ip_face *iface)
 {
+	char addr1[IP_ADDR_STR_LEN];
+	char addr2[IP_ADDR_STR_LEN];
+	char addr3[IP_ADDR_STR_LEN];
+
+	if (net_device_add_iface(dev, iface) == -1) {
+		errorf("net_device_add_iface() failure");
+		return -1;
+	}
+
+	iface->next = ifaces;
+	ifaces = iface;
+
+	infof("registered: dev=%s, unicast=%s, netmask=%s, broadcast=%s", dev->name,
+		ip_addr_ntop(iface->unicast, addr1, sizeof(addr1)),
+		ip_addr_ntop(iface->netmask, addr2, sizeof(addr2)),
+		ip_addr_ntop(iface->broadcast, addr3, sizeof(addr3)));
+
+	return 0;
 }
 
 extern struct ip_iface *
 ip_iface_select(ip_addr_t addr)
 {
+	for (entry = ifaces; entry; entry = ifaces->next) {
+		if (entry->unicast == addr) {
+			return entry;
+		}
+	}
+	errorf("ip interface not found");
+	return NULL;
 }
 
 static void
