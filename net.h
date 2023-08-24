@@ -31,7 +31,7 @@
 #define NET_IFACE_FAMILY_IP 1
 #define NET_IFACE_FAMILY_IPV6 2
 
-#define NET_IFACE(x) ((struct net_iface )(x))
+#define NET_IFACE(x) ((struct net_iface *)(x))
 
 struct net_device {
 	struct net_device *next;
@@ -63,7 +63,7 @@ struct net_iface {
 	struct net_iface *next;
 	struct net_device *dev;
 	int family;
-}
+};
 
 extern struct net_device *
 net_device_alloc(void);

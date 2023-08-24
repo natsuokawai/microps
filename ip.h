@@ -25,7 +25,7 @@ struct ip_iface {
 	ip_addr_t unicast;
 	ip_addr_t netmask;
 	ip_addr_t broadcast;
-}
+};
 
 extern const ip_addr_t IP_ADDR_ANY;
 extern const ip_addr_t IP_ADDR_BROADCAST;
@@ -33,7 +33,7 @@ extern const ip_addr_t IP_ADDR_BROADCAST;
 extern struct ip_iface *
 ip_iface_alloc(const char *unicast, const char *netmask);
 extern int
-ip_iface_register(struct net_device *dev, struct ip_face *iface);
+ip_iface_register(struct net_device *dev, struct ip_iface *iface);
 extern struct ip_iface *
 ip_iface_select(ip_addr_t addr);
 
